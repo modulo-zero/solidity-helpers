@@ -4,8 +4,9 @@ pragma solidity ^0.8.0;
 import { Script } from "forge-std/Script.sol";
 import { stdJson } from "forge-std/StdJson.sol";
 import { console2 as console } from "forge-std/console2.sol";
-import { Executables } from "./Executables.sol";
-import { Chains } from "./Chains.sol";
+
+import { Executables } from "src/Executables.sol";
+import { Chains } from "src/Chains.sol";
 
 /// @notice store the new deployment to be saved
 struct Deployment {
@@ -464,15 +465,14 @@ abstract contract Deployer is Script {
         json = stdJson.serialize("", "args", _artifact.args);
         json = stdJson.serialize("", "bytecode", _artifact.bytecode);
         json = stdJson.serialize("", "deployedBytecode", _artifact.deployedBytecode);
-        // NOTE: these are commented because otherwise the deployment encounters OOM errors
-        // json = stdJson.serialize("", "devdoc", _artifact.devdoc);
-        // json = stdJson.serialize("", "metadata", _artifact.metadata);
+        json = stdJson.serialize("", "devdoc", _artifact.devdoc);
+        json = stdJson.serialize("", "metadata", _artifact.metadata);
         json = stdJson.serialize("", "numDeployments", _artifact.numDeployments);
         json = stdJson.serialize("", "receipt", _artifact.receipt);
         json = stdJson.serialize("", "solcInputHash", _artifact.solcInputHash);
         json = stdJson.serialize("", "storageLayout", _artifact.storageLayout);
         json = stdJson.serialize("", "transactionHash", _artifact.transactionHash);
-        // json = stdJson.serialize("", "userdoc", _artifact.userdoc);
+        json = stdJson.serialize("", "userdoc", _artifact.userdoc);
         return json;
     }
 
@@ -526,12 +526,14 @@ abstract contract Deployer is Script {
 
     function _chainIsL1() internal returns (bool) {
         return _compareStrings(_getDeploymentContext(), "devnetL1")
-            || _compareStrings(_getDeploymentContext(), "sepolia") || _compareStrings(_getDeploymentContext(), "mainnet");
+            || _compareStrings(_getDeploymentContext(), "sepolia")
+            || _compareStrings(_getDeploymentContext(), "mainnet");
     }
 
     function _chainIsL2() internal returns (bool) {
         return _compareStrings(_getDeploymentContext(), "devnetL2")
-            || _compareStrings(_getDeploymentContext(), "blast-sepolia") || _compareStrings(_getDeploymentContext(), "blast-mainnet");
+            || _compareStrings(_getDeploymentContext(), "blast-sepolia")
+            || _compareStrings(_getDeploymentContext(), "blast-mainnet");
     }
 
     function _isFork() internal view returns (bool) {
