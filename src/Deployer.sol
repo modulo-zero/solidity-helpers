@@ -94,7 +94,7 @@ abstract contract Deployer is Script {
                 _compareStrings(deploymentContext, "devnetL1") ||
                 _compareStrings(deploymentContext, "devnetL2")
             ) &&
-            !_compareStrings(forkContext, "none")
+            !_compareStrings(forkContext, "")
         ) {
             string memory contextDir = string.concat(root, "/deployments/", forkContext);
             string[] memory cmd = new string[](3);
