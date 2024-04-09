@@ -13,8 +13,8 @@ library Chains {
     uint256 internal constant BlastLocalDevnet = 901;
 
     enum Layer {
-      One;
-      Two;
+      One,
+      Two
     }
 
     struct Chain {
