@@ -6,7 +6,6 @@ import { stdJson } from "forge-std/StdJson.sol";
 import { console2 as console } from "forge-std/console2.sol";
 
 import { Executables } from "src/Executables.sol";
-import { Chains } from "src/Chains.sol";
 
 /// @notice store the new deployment to be saved
 struct Deployment {
@@ -38,6 +37,8 @@ struct Artifact {
 ///         contract address to disk. Then the `sync` function can be called to generate
 ///         hardhat deploy style artifacts. Forked from `forge-deploy`.
 abstract contract Deployer is Script {
+    using stdJson for string;
+
     /// @notice The set of deployments that have been done during execution.
     mapping(string => Deployment) internal _namedDeployments;
     /// @notice The same as `_namedDeployments` but as an array.
@@ -88,14 +89,7 @@ abstract contract Deployer is Script {
         deploymentsDir = string.concat(root, "/deployments/", deploymentContext);
         try vm.createDir(deploymentsDir, true) { } catch (bytes memory) { }
 
-        if (
-            (
-                _compareStrings(deploymentContext, "hardhat") ||
-                _compareStrings(deploymentContext, "devnetL1") ||
-                _compareStrings(deploymentContext, "devnetL2")
-            ) &&
-            !_compareStrings(forkContext, "")
-        ) {
+        if (!_compareStrings(forkContext, "none")) {
             string memory contextDir = string.concat(root, "/deployments/", forkContext);
             string[] memory cmd = new string[](3);
             cmd[0] = Executables.bash;
@@ -478,29 +472,12 @@ abstract contract Deployer is Script {
 
     /// @notice The context of the deployment is used to namespace the artifacts.
     ///         An unknown context will use the chainid as the context name.
-    function _getDeploymentContext() internal returns (string memory) {
+    function _getDeploymentContext() internal view returns (string memory) {
         string memory context = vm.envOr("DEPLOYMENT_CONTEXT", string(""));
         if (bytes(context).length > 0) {
             return context;
-        }
-
-        uint256 chainid = vm.envOr("CHAIN_ID", block.chainid);
-        if (chainid == Chains.Mainnet) {
-            return "mainnet";
-        } else if (chainid == Chains.LocalDevnet || chainid == Chains.GethDevnet) {
-            return "devnetL1";
-        } else if (chainid == Chains.Hardhat) {
-            return "hardhat";
-        } else if (chainid == Chains.Sepolia) {
-            return "sepolia";
-        } else if (chainid == Chains.BlastLocalDevnet) {
-            return "devnetL2";
-        } else if (chainid == Chains.BlastSepolia) {
-            return "blast-sepolia";
-        } else if (chainid == Chains.BlastMainnet) {
-            return "blast-mainnet";
         } else {
-            return vm.toString(chainid);
+            revert("");
         }
     }
 
@@ -525,19 +502,11 @@ abstract contract Deployer is Script {
     }
 
     function _chainIsL1() internal returns (bool) {
-        return _compareStrings(_getDeploymentContext(), "devnetL1")
-            || _compareStrings(_getDeploymentContext(), "sepolia")
-            || _compareStrings(_getDeploymentContext(), "mainnet");
+        return _compareStrings(_getLayer(), "l1");
     }
 
     function _chainIsL2() internal returns (bool) {
-        return _compareStrings(_getDeploymentContext(), "devnetL2")
-            || _compareStrings(_getDeploymentContext(), "blast-sepolia")
-            || _compareStrings(_getDeploymentContext(), "blast-mainnet");
-    }
-
-    function _isFork() internal view returns (bool) {
-        return 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84.code.length > 0;
+        return _compareStrings(_getLayer(), "l2");
     }
 
     function _compareStrings(string memory _a, string memory _b) internal pure returns (bool) {
@@ -600,5 +569,17 @@ abstract contract Deployer is Script {
         else data = abi.encodePacked(bytes1(0xde), len, addr, bytes1(0x88), uint64(nonce));
 
         return address(uint160(uint256(keccak256(data))));
+    }
+
+    function _getEnvironment() internal view returns (string memory url, string memory layer, uint32 chainid) {
+        string memory res = vm.readFile(string.concat(vm.envOr("PROJECT_DIR", string("")), "/mod.config.json");
+        string memory env = string.concat(".rpc.", _getDeploymentContext());
+        url = res.readString(string.concat(env, ".url"));
+        layer = res.readString(string.concat(env, ".layer"));
+        chainid = uint32(res.readUint(string.concat(env, ".chainid")));
+    }
+
+    function _getLayer() internal view returns (string memory url, string memory layer, uint32 chainid) {
+        return _getEnvironment()[1];
     }
 }
