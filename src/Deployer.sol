@@ -580,6 +580,6 @@ abstract contract Deployer is Script {
     }
 
     function _getLayer() internal view returns (string memory layer) {
-        return _getEnvironment()[1];
+        (, layer, ) = _getEnvironment();
     }
 }
