@@ -579,7 +579,7 @@ abstract contract Deployer is Script {
         chainid = uint32(res.readUint(string.concat(env, ".chainid")));
     }
 
-    function _getLayer() internal view returns (string memory url, string memory layer, uint32 chainid) {
+    function _getLayer() internal view returns (string memory layer) {
         return _getEnvironment()[1];
     }
 }
