@@ -292,7 +292,7 @@ abstract contract Deployer is Script {
     }
 
     /// @notice Returns the contract name from a deploy transaction.
-    function _getContractNameFromDeployTransaction(string memory _deployTx) internal returns (string memory) {
+    function _getContractNameFromDeployTransaction(string memory _deployTx) internal pure returns (string memory) {
         return stdJson.readString(_deployTx, ".contractName");
     }
 
@@ -501,11 +501,11 @@ abstract contract Deployer is Script {
         }
     }
 
-    function _chainIsL1() internal returns (bool) {
+    function _chainIsL1() internal view returns (bool) {
         return _compareStrings(_getLayer(), "l1");
     }
 
-    function _chainIsL2() internal returns (bool) {
+    function _chainIsL2() internal view returns (bool) {
         return _compareStrings(_getLayer(), "l2");
     }
 
