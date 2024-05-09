@@ -43,7 +43,7 @@ library MerkleTreeTest {
      * PROOF GENERATION *
      *
      */
-    function getRoot(bytes32[] storage data) internal pure returns (bytes32) {
+    function getRoot2(bytes32[] storage data) internal pure returns (bytes32) {
         bytes32[] memory _data = new bytes32[](data.length);
         for (uint256 i; i < data.length; i++) {
             _data[i] = data[i];
