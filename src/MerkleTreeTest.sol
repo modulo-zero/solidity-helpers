@@ -17,6 +17,14 @@ library MerkleTreeTest {
         }
     }
 
+    function loadFromStorage(bytes32[] storage leaves) internal view returns (bytes32[] memory) {
+        bytes32[] memory _leaves = new bytes32[](leaves.length);
+        for (uint256 i; i < leaves.length; i++) {
+            _leaves[i] = leaves[i];
+        }
+        return _leaves;
+    }
+
     /**
      *
      * PROOF VERIFICATION *
@@ -43,12 +51,8 @@ library MerkleTreeTest {
      * PROOF GENERATION *
      *
      */
-    function getRoot2(bytes32[] storage data) internal view returns (bytes32) {
-        bytes32[] memory _data = new bytes32[](data.length);
-        for (uint256 i; i < data.length; i++) {
-            _data[i] = data[i];
-        }
-        return getRoot(_data);
+    function getRoot2(bytes32[] storage leaves) internal view returns (bytes32) {
+        return getRoot(loadFromStorage(leaves));
     }
 
     function getRoot(bytes32[] memory data) public pure returns (bytes32) {
@@ -59,6 +63,13 @@ library MerkleTreeTest {
             data = hashLevel(data);
         }
         return data[0];
+    }
+
+    function getProof2(
+        bytes32[] storage leaves,
+        uint256 node
+    ) public view returns (bytes32[] memory) {
+        return getProof(loadFromStorage(leaves), node);
     }
 
     function getProof(
