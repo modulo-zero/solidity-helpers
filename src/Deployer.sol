@@ -5,7 +5,7 @@ import { Script } from "forge-std/Script.sol";
 import { stdJson } from "forge-std/StdJson.sol";
 import { console2 as console } from "forge-std/console2.sol";
 
-import { Executables } from "src/Executables.sol";
+import { Executables } from "./Executables.sol";
 
 /// @notice store the new deployment to be saved
 struct Deployment {
@@ -280,7 +280,7 @@ abstract contract Deployer is Script {
             Executables.jq,
             " -r '.transactions[] | select(.contractAddress == ",
             '"',
-            vm.toString(_addr),
+            lower(vm.toString(_addr)),
             '"',
             ') | select(.transactionType == "CREATE"',
             ' or .transactionType == "CREATE2"',
@@ -289,6 +289,29 @@ abstract contract Deployer is Script {
         );
         bytes memory res = vm.ffi(cmd);
         return string(res);
+    }
+
+    function lower(string memory _base)
+        internal
+        pure
+        returns (string memory) {
+        bytes memory _baseBytes = bytes(_base);
+        for (uint i = 0; i < _baseBytes.length; i++) {
+            _baseBytes[i] = _lower(_baseBytes[i]);
+        }
+        return string(_baseBytes);
+    }
+
+    function _lower(bytes1 _b1)
+        private
+        pure
+        returns (bytes1) {
+
+        if (_b1 >= 0x41 && _b1 <= 0x5A) {
+            return bytes1(uint8(_b1) + 32);
+        }
+
+        return _b1;
     }
 
     /// @notice Returns the contract name from a deploy transaction.
