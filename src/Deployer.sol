@@ -78,7 +78,7 @@ abstract contract Deployer is Script {
     function setUp() public virtual {
         string memory root = vm.projectRoot();
         deployScript = vm.envOr("DEPLOY_SCRIPT", name());
-        forkContext = vm.envOr("FORK_CONTEXT", string(""));
+        forkContext = vm.envOr("FORK_CONTEXT", string("none"));
 
         deploymentContext = _getDeploymentContext();
         string memory sig = vm.envOr("SIG", string("run"));
