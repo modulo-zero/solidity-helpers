@@ -497,7 +497,7 @@ abstract contract Deployer is Script {
     function _getDeploymentContext() internal view returns (string memory environment, string memory layer) {
         environment = vm.envOr("DEPLOYMENT_ENVIRONMENT", string(""));
         layer = vm.envOr("DEPLOYMENT_LAYER", string(""));
-        if (bytes(environment).length ==  0) {
+        if (bytes(environment).length == 0) {
             revert("");
         }
     }
@@ -595,7 +595,12 @@ abstract contract Deployer is Script {
     function _getEnvironment() internal view returns (string memory url, string memory layer, uint32 chainid) {
         string memory res = vm.readFile(string.concat(vm.envOr("PROJECT_DIR", string("")), "/mod.config.json"));
         (string memory env, string memory layer) = _getDeploymentContext();
-        string memory network = res.readString(string.concat(".envs.", env, ".rpc.", layer));
+        string memory network;
+        if (bytes(layer).length > 0) {
+            network = res.readString(string.concat(".envs.", env, ".rpc.", layer));
+        } else {
+            network = res.readString(string.concat(".envs.", env, ".rpc"));
+        }
         url = res.readString(string.concat(network, ".url"));
         layer = res.readString(string.concat(network, ".layer"));
         chainid = uint32(res.readUint(string.concat(network, ".chainid")));
