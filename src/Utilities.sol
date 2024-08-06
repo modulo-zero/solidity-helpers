@@ -10,10 +10,11 @@ library Utils {
         internal
         returns (bytes memory)
     {
+        string memory root = vm.projectRoot();
         string[] memory cmd = new string[](3);
         cmd[0] = Executables.bash;
         cmd[1] = "-c";
-        cmd[2] = string.concat("./scripts/packCsv.sh ", types, " ", csvFile);
+        cmd[2] = string.concat(root, "lib/solidity-helpers/scripts/packCsv.sh ", types, " ", csvFile);
         return vm.ffi(cmd);
     }
 
