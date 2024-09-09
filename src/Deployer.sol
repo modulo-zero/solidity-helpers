@@ -592,8 +592,8 @@ abstract contract Deployer is Script {
         return address(uint160(uint256(keccak256(data))));
     }
 
-    function computeCreate2Address(address deployer, bytes32 salt, bytes32 creationCodeHash) public view returns (address addr) {
-        address contractAddress = address(this);
+    function computeCreate2Address(bytes32 salt, bytes32 creationCodeHash) public view returns (address addr) {
+        address contractAddress = 0x4e59b44847b379578588920ca78fbf26c0b4956c;
 
         assembly {
             let ptr := mload(0x40)
