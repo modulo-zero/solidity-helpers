@@ -593,7 +593,7 @@ abstract contract Deployer is Script {
     }
 
     function computeCreate2Address(bytes32 salt, bytes32 creationCodeHash) public view returns (address addr) {
-        address contractAddress = 0x4e59b44847b379578588920ca78fbf26c0b4956c;
+        address contractAddress = 0x4e59b44847b379578588920cA78FbF26c0B4956C;
 
         assembly {
             let ptr := mload(0x40)
