@@ -592,6 +592,21 @@ abstract contract Deployer is Script {
         return address(uint160(uint256(keccak256(data))));
     }
 
+    function computeCreate2Address(address deployer, bytes32 salt, bytes32 creationCodeHash) public view returns (address addr) {
+        address contractAddress = address(this);
+
+        assembly {
+            let ptr := mload(0x40)
+
+            mstore(add(ptr, 0x40), creationCodeHash)
+            mstore(add(ptr, 0x20), salt)
+            mstore(ptr, contractAddress)
+            let start := add(ptr, 0x0b)
+            mstore8(start, 0xff)
+            addr := keccak256(start, 85)
+        }
+    }
+
     function _getEnvironment() internal view returns (string memory url, string memory layer, uint32 chainid) {
         string memory res = vm.readFile(string.concat(vm.envOr("PROJECT_DIR", string("")), "/mod.config.json"));
         (string memory env, string memory _layer) = _getDeploymentContext();
