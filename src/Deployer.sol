@@ -127,17 +127,32 @@ abstract contract Deployer is Script {
             string memory deploymentName = deployments[i].name;
 
             string memory deployTx = _getDeployTransactionByContractAddress(addr);
-            if (bytes(deployTx).length == 0) {
-                console.log("Deploy Tx not found for %s skipping deployment artifact generation", deploymentName);
-                continue;
+            string memory contractName;
+            string[] memory args;
+            string memory receipt;
+
+            if (bytes(deployTx).length > 0) {
+                contractName = _getContractNameFromDeployTransaction(deployTx);
+                args = getDeployTransactionConstructorArguments(deployTx);
+                receipt = _getDeployReceiptByContractAddress(addr);
+            } else {
+                deployTx = _getParentTransactionByAdditionalContract(addr);
+                if (bytes(deployTx).length == 0) {
+                    console.log("Deploy Tx not found for %s skipping deployment artifact generation", deploymentName);
+                    continue;
+                }
+                // Internally created contracts carry no contractName or arguments in the
+                // broadcast file, so the deployment name doubles as the contract name.
+                contractName = deploymentName;
+                args = new string[](0);
+                receipt = _getDeployReceiptByContractAddress(
+                    stdJson.readAddress(deployTx, ".contractAddress")
+                );
             }
-            string memory contractName = _getContractNameFromDeployTransaction(deployTx);
             console.log("Syncing deployment %s: contract %s", deploymentName, contractName);
 
-            string[] memory args = getDeployTransactionConstructorArguments(deployTx);
             bytes memory code = _getCode(contractName);
             bytes memory deployedCode = _getDeployedCode(contractName);
-            string memory receipt = _getDeployReceiptByContractAddress(addr);
 
             string memory artifactPath = string.concat(deploymentsDir, "/", deploymentName, ".json");
 
@@ -572,5 +587,21 @@ abstract contract Deployer is Script {
 
     function _getLayer() internal view returns (string memory layer) {
         (, layer, ) = _getEnvironment();
+    }
+
+    /// @notice Returns the transaction whose execution internally created `_addr`
+    ///         (e.g. the ProxyAdmin created inside a TransparentUpgradeableProxy constructor).
+    function _getParentTransactionByAdditionalContract(address _addr) internal returns (string memory) {
+        string[] memory cmd = new string[](3);
+        cmd[0] = Executables.bash;
+        cmd[1] = "-c";
+        cmd[2] = string.concat(
+            Executables.jq,
+            " -r '.transactions[] | select(any(.additionalContracts[]?; (.address | ascii_downcase) == \"",
+            lower(vm.toString(_addr)),
+            "\"))' < ",
+            deployPath
+        );
+        return string(vm.ffi(cmd));
     }
 }
